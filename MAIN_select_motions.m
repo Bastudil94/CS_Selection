@@ -266,6 +266,17 @@ else
         IMs = optimize_ground_motions(selectionParams, targetSa, IMs);
         % IMs = optimize_ground_motions_par(selectionParams, targetSa, IMs); % a version of the optimization function that uses parallel processing
     end
+
+    % Verify that the final selection contains nGM unique pairs of (record, scale factor).
+    nUnique = size(unique([IMs.recID, IMs.scaleFac], 'rows'), 1);
+    assert(nUnique == selectionParams.nGM, ...
+    "Ground motion selection contains repeated pairs of (record, scale factor) (unique: %d, requested: %d).", ...
+    nUnique, selectionParams.nGM)
+
+    % Verify that all selected scale factors satisfy the maximum scaling constraint.
+    assert(all(IMs.scaleFac <= selectionParams.maxScale), ...
+    "One or more scale factors exceed the maximum allowed value (maxScale = %.3f).", ...
+    selectionParams.maxScale)
 end
 
 %% Plot results, if desired
@@ -286,3 +297,4 @@ write_output(recIdx, IMs, outputDir, outputFile, metadata)
 if copyFiles
     download_time_series(outputDir, recIdx, metadata)
 end
+
